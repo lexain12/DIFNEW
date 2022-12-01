@@ -13,7 +13,6 @@ extern const size_t VarTableSize;
 extern const char* LatexFileName;
 
 extern const size_t numOfFillers;
-#define RAND_MAX numOfFillers
 extern const char* fillers[];
 
 enum Errors
@@ -70,6 +69,7 @@ struct Var
 };
 
 Node* nodeCtor ();
+void nodeDtor (Node* node);
 Node* createNode (Type type, OP opValue, double num, char* varValue, Node* left, Node* right);
 
 int treeCtor (Tree* tree);
@@ -83,17 +83,30 @@ int   compareOperation (const Node* node, const Node* childNode);
 void  printOperation   (const Node* node, const char* operation, FILE* const fileToPrint);
 void  parseNodeData    (Node* curNode,    FILE* DBFileptr);
 Node* treeCpy          (const Node* node);
-Node* diff             (const Node* node);
+Node* diff (const Node* node, char* varName);
+Node* makeEasier (Node* node, int* isChanged);
+Node* countConstExpr (Node* node, int* isChanged);
+Node* optimizeTree (Node* node);
+double findVar (const char* varName);
+void insertVar (Node* node);
+void fillTable (Var* table, size_t size);
+Node* countFunction (Node* node);
+Node* countFunctionInPoint (Node* node);
+Node* countDerivative (Node* initialNode, size_t order, char* varName);
 
 void  treeDump         (Tree* tree,       const char* str, ...);
 void changeVarTable (char* varName, double varValue);
-void tableDump ();
+void tableDumpLatex (FILE* fileToPrint);
+int factorial (int num);
 void tableInsert (char* varName);
+void varTablePoison ();
+int nodeEquals (const Node* node, const double val);
 
 int   findInTree       (Node* node,       const char* dataToFind);
 void  treePrint        (const Node* node);
 Node* treeParse        (Node* node,       FILE* DBFileptr);
 void latexBegin        (FILE* fileToPrint);
+void latexCompile ();
 void latexEnd          (FILE* fileToPrint);
 
 Node* getN (Node*** tokenArray);
@@ -110,3 +123,7 @@ void getOpOrVarToken (Node*** tokenArray, char** string);
 void getTokens (Node** tokenArray, char* string);
 void getBOpToken (Node*** tokenArray, char** string);
 void skipSpaces (char** string);
+
+void drawPlot (double minX, double maxX, Node* function, char* varName, char* fileName);
+void fullError (Node* function);
+void McLaurenSeries (Node* function, size_t order, char* varName, FILE* fileToPrint);

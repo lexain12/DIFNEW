@@ -96,7 +96,6 @@ Node* getP (Node*** tokenArray)
     {
         *tokenArray += 1;
         val = getE (tokenArray);
-        printf ("GetP %lf\n", val);
         assert ((***tokenArray).opValue == OP_RBR);
         *tokenArray += 1;
     }
@@ -155,13 +154,11 @@ Node* getUnOP (Node*** tokenArray)
             case OP_SIN:
                 *tokenArray += 1;
                 val = SIN (getP (tokenArray));
-                printf ("SIN %p\n", val);
                 break;
             
             case OP_COS:
                 *tokenArray += 1;
                 val = COS (getP (tokenArray));
-                printf ("COS %p\n", val);
                 break;
         }
 
@@ -268,7 +265,6 @@ void getTokens (Node** tokenArray, char* string)
 
         else if (strchr ("+-*/^()", *string))
         {
-            printf ("OP\n");
             getBOpToken (&tokenArray, &string);
         }
 

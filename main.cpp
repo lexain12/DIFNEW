@@ -23,7 +23,7 @@ const double VarPoison     = 10e7;
 const size_t VarTableSize  = 10;
 const char* LatexFileName  = "latex.tex";
 
-const size_t numOfFillers = 6;
+const size_t numOfFillers = 12;
 
 const char* fillers[] = 
 {
@@ -36,7 +36,9 @@ const char* fillers[] =
     "Как известно, производная этой функции равняется:",
     "Поэтому:",
     "Заметим, что:",
-    "Доказать, что это верно, оставим как домашнее задание интересующемуся читателю:"
+    "Доказать, что это верно, оставим как домашнее задание интересующемуся читателю:",
+    "Доказательство данного утверждения опустим для краткости:",
+    "Надеюсь вам достаточно ума, чтобы заметить",
 };
 
 Var VarTable[VarTableSize] = {};
@@ -934,8 +936,8 @@ Node* countConstExpr (Node* node, int* isChanged)
     return treeCpy (node);
 }
 #undef countOP
-
 Node* optimizeTree (Node* node)
+
 {
     assert (node != nullptr);
     Node* rtnNode = nodeCtor (); 
@@ -1087,12 +1089,22 @@ int factorial (int num)
 }
 
 
-void tableDump ()
+void tableDumpLatex (FILE* fileToPrint)
 {
+    fprintf (fileToPrint, "\\begin{table}[h!]\n\n");
+    fprintf (fileToPrint, "\\begin{center}\n\n");
+    fprintf (fileToPrint, "\\begin{tabular}{|c|c|}\n\n");
+    fprintf (fileToPrint, "\\hline\n\n");
+    fprintf (fileToPrint, "Название & значение \\\\\\hline\n\n");
+
     for (size_t index = 0; index < VarTableSize; ++index)
     {
-        printf ("VarName: %s, varValue: %lf\n", VarTable[index].varName, VarTable[index].varValue);
+        if (VarTable[index].varName != nullptr)
+            fprintf (fileToPrint, "%s & %lg \\\\ \\hline\n\n", VarTable[index].varName, VarTable[index].varValue);
     }
+    fprintf (fileToPrint, "\\end{tabular}\n\n");
+    fprintf (fileToPrint, "\\end{center}\n\n");
+    fprintf (fileToPrint, "\\end{table}\n\n");
 }
 
 void changeVarTable (char* varName, double varValue)
@@ -1175,22 +1187,36 @@ void fullError (Node* function)
 void latexBegin (FILE* fileToPrint)
 {
     laprint ("\\documentclass{article}\n");
-    laprint ("\\usepackage[utf8]{inputenc}\n");
     laprint ("\\usepackage{graphicx}\n");
-    laprint ("\\title{11}\n");
-    laprint ("\\author{Витя Тяжелков}\n");
+    laprint ("\\usepackage{mathtext}\n");
+    laprint ("\\usepackage{amsmath}\n");
+    laprint ("\\usepackage{rotating}\n");
+    laprint ("\\usepackage[left=25mm, top=20mm, right=20mm, bottom=20mm, nohead, nofoot]{geometry}\n");
+    laprint ("\\usepackage[utf8]{inputenc}\n");
     laprint ("\\date{November 2022}\n");
     laprint ("\\usepackage[russian]{babel}\n");
+
+    laprint ("\\title{\\begin{center}Самый полезный учебник по матану\\end{center}}\n");
+    laprint ("\\author{Тяжелков Виктор}\n");
+    laprint ("\\date{\\today}\n");
+
     laprint ("\\begin{document}\n");
-    laprint ("Одним из основных понятий , изучаемых в курсе математического анализа, является понятие производной. Оно возникает в школьном курсе элементарной албебры. Короче я устал писать, го к делу. Кстати, так как это очень нужное пособие и его прочтет миллионы людей, то здесь могла бы быть ваша реклама.\n\n");
-    laprint ("На самом деле понятие производной это очень легко, просто дифференцируем функцию и все, у нас есть производная. Давайте разберем это понятие на примере следующей функции:\n\n");
+    laprint ("\\pagenumbering{gobble}\n");
+    laprint ("\\maketitle\n");
+    laprint ("\\newpage\n");
+    laprint ("\\pagenumbering{arabic}\n");
+
+    laprint ("\\section{Вступление}\n");
+    laprint ("\\paragraph{}\n");
+    laprint ("Одним из основных понятий , изучаемых в курсе математического анализа, является понятие производной. Оно возникает в школьном курсе элементарной албебры. Короче я устал писать, го к делу. Кстати, так как это очень нужное пособие и его прочтет миллионы людей, то здесь могла бы быть ваша реклама.\n");
+
+    laprint ("\\section{Производные функции}\n");
+    laprint ("На самом деле понятие производной это очень легко, просто дифференцируем функцию и все, у нас есть производная. Давайте разберем это понятие на примере следующей функции:\n");
 }
 
 void McLaurenSeries (Node* function, size_t order, char* varName, FILE* fileToPrint)
 {
-    fprintf (fileToPrint, "McLaurenSeries for this function:\n\n");
     changeVarTable (varName, 0);
-    tableDump ();
     Tree tree = {};
     tree.root = countFunction (countDerivative (function, 0, varName));
     treeDump (&tree, "Mc Lauren");
@@ -1199,15 +1225,18 @@ void McLaurenSeries (Node* function, size_t order, char* varName, FILE* fileToPr
     for (size_t index = 0; index <= order; ++index)
     {
 
-        fprintf (fileToPrint, "x^{%d} \\cdot \\frac{", index);
+        fprintf (fileToPrint, "\\frac{");
         treePrint (countFunction (countDerivative (function, index, varName)), 0, fileToPrint);
         fprintf (fileToPrint, "}{");
-        fprintf (fileToPrint, "%d} + ", factorial (index));
+        fprintf (fileToPrint, "%d}", factorial (index));
+        fprintf (fileToPrint, "\\cdot x^{%d} +", index);
     }
 
     fprintf (fileToPrint, "o(x^{%d})", order);
     fprintf (fileToPrint, "$\n\n");
 
+    laprint ("\\newpage\n\n");
+    laprint ("\\section{График самой функции}\n\n");
     laprint("\\begin{figure}[h]\n\n");
 
     laprint("\\centering\n\n");
@@ -1223,6 +1252,19 @@ void McLaurenSeries (Node* function, size_t order, char* varName, FILE* fileToPr
 
 void latexEnd (FILE* fileToPrint)
 {
+    laprint ("\\newpage\n");
+    laprint ("\\section{Заключение}\n\n");
+    laprint ("\\subsection{Благодарности}\n\n");
+    laprint ("\\paragraph{}");
+    laprint ("Я очень старался, когда выпускал эту книгу. Спасибо всем, кто поддерживал и помогал. Особые благодарности: Мама, Папа, сестра, брат, дочь, сын, бабушка, дед, Дед, тетя, дядя, двоюродный брат, двоюродная сестра, Саня Пластина, Дима Сыркин, ГУКАС, Знаменская, Петрович, Крымский, солнце, небо. Блин спасибо, что я есть.\n\n");
+    laprint ("\\subsection{Список литературы}\n\n");
+    laprint ("\\paragraph{}\n\n");
+    laprint ("\\begin{enumerate}\n\n");
+    laprint ("\\item А.Ю. Петрович \"Лекции по математическому анализу\"\n\n");
+    laprint ("\\item Сказка о репке\n\n");
+    laprint ("\\item Сказка о рыбаке и рыбке\n\n"); 
+    laprint ("\\item Вы спросите почему это здесь, на самом деле никто не дочитает до этого момента.\n\n");
+    laprint ("\\end{enumerate}\n\n");
     laprint ("\\end{document}\n");
 }
 
@@ -1232,6 +1274,7 @@ void latexDerivative (Node* function, size_t order, FILE* fileToPrint)
 
     if (order >= 1)
     {
+        laprint ("\\subsection{1 производная}");
         laprint ("Давайте посчитаем первую производную:\n\n");
         
         laprint ("$");
@@ -1246,16 +1289,17 @@ void latexDerivative (Node* function, size_t order, FILE* fileToPrint)
     for (size_t index = 2; index <= order; ++index)
     {
         number = rand()%numOfFillers;
+        laprint ("\\subsection{%lu производная}\n\n", index);
 
         if (number <= 3)
         {
             laprint (fillers[number]);
 
-            laprint("\\begin{figure}[h]\n\n");
+            laprint("\\begin{figure}[!h]\n\n");
 
             laprint("\\centering\n\n");
 
-            laprint ("\\includegraphics[width=0.2\\linewidth]{meme%d.jpeg}\n\n", number);
+            laprint ("\\includegraphics[width=0.3\\linewidth]{meme%d.jpeg}\n\n", number);
 
             laprint ("\\end{figure}\n\n");
             
@@ -1292,68 +1336,57 @@ int main ()
     FILE* DBFileptr = fopen ("DBFile.txt", "r");
     readFileToLinesStruct (DBFileptr, &inputFile);
 
-    printf ("%s", inputFile.arrayOfLines[0].charArray);
-
     Node** tokenArray = (Node**) calloc (inputFile.arrayOfLines[0].length, sizeof(*tokenArray));
 
     getTokens (tokenArray, inputFile.arrayOfLines[0].charArray);
 
-    for (int index = 0; tokenArray[index]->type != Unknown; ++index)
-    {
-        tree.root = tokenArray[index];
-        treeDump (&tree, "HEY\n");
-    }
-
-    tree.root = treeParse (tree.root, DBFileptr);
-    tree.root = tree.root->left;
-
     Tree tree1 = {}; 
     treeCtor (&tree1); 
 
-    printf ("Enter n for differnce the func n times\n");
     size_t numberOfDiff = 0;
     sscanf (inputFile.arrayOfLines[2].charArray, "%lu", &numberOfDiff);
 
     tree.root = getG (&tokenArray);
-    treeDump (&tree, "Hello\n");
 
-    tree1.root = countDerivative (tree.root, 0, "x");
+    treeDump (&tree, "HEY");
 
     fclose (DBFileptr);
 
+    printf ("Error\n");
     fullError (tree.root);
 
+    printf ("Draw plot\n");
     drawPlot (-5, 5, tree.root, "x", "plot.txt");
+    tree1.root = countDerivative (tree.root, numberOfDiff, "x");
 
     FILE* overleaf = fopen (LatexFileName, "w");
     latexBegin (overleaf);
+    fprintf (overleaf, "\n\n");
     fprintf (overleaf, "$f(x) = ");
     treePrint (tree.root, 0, overleaf);
     fprintf (overleaf, "$\n\n");
     assert (overleaf != nullptr);
 
-
-    fprintf (overleaf, "$");
-    treePrint (tree1.root, 0, overleaf);
-    fprintf (overleaf, "$\n\n очевидно, что это равняется: \n\n");
-
-    fillTable (VarTable, VarTableSize);
-    tree1.root = countFunction (tree1.root);
-
-    fprintf (overleaf, "$");
-    treePrint (tree1.root, 0, overleaf);
-    fprintf (overleaf, "$\n\n");
-
     latexDerivative (tree.root, numberOfDiff, overleaf);
 
     int McLaurenOrder = 0;
     sscanf (inputFile.arrayOfLines[4].charArray, "%d", &McLaurenOrder);
-    printf ("%s\n", inputFile.arrayOfLines[4].charArray);
-    printf ("McLaurenOrd %d\n", McLaurenOrder);
+
+    fprintf (overleaf, "\\section{Разложение этой функции в ряд Маклорена}\n\n");
     McLaurenSeries (tree.root, McLaurenOrder, "x", overleaf);
 
     fprintf (overleaf, "\n\n");
-    
+
+    fprintf (overleaf, "\\section{Расчеты}\n\n");
+    fprintf (overleaf, "\\paragraph{}\n\n");
+    fprintf (overleaf, "Ниже представленa таблица значений:\n\n");
+    tableDumpLatex (overleaf);
+    fprintf (overleaf, "Думаю, что всем очевидно, что значение функции с такими параметрами равно:\n\n");
+    fprintf (overleaf, "$f(x)^{(%lu)} = ", numberOfDiff);
+    fillTable (VarTable, VarTableSize);
+    tree1.root = countFunction (countDerivative (tree.root, numberOfDiff, "x"));
+    treePrint (tree1.root, 0, overleaf);
+    fprintf (overleaf, "$\n\n");
 
     latexEnd (overleaf);
     fclose (overleaf);
